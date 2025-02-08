@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test": "vitest --watch --changed",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
@@ -11,5 +12,8 @@
   "devDependencies": {
     "typescript": "~5.7.2",
     "vite": "^6.1.0"
+  },
+  "dependencies": {
+    "vitest": "^3.0.5"
   }
 }
