@@ -28,6 +28,10 @@ const hourFractions = {
 
 const timePrepositions = ["vor", "nach"];
 
-function germanTimeToHuman(timeString: String): String {}
+function germanTimeToHuman(timeString: String): String {
+  let hour: Number | null = null;
+  let minutes: Number | null = null;
+  const tokens = timeString.toLowerCase().split(" ");
+}
 
 export default germanTimeToHuman;
