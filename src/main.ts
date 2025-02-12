@@ -23,15 +23,51 @@ const hoursMap = {
 
 const hourFractions = {
   viertel: 15,
+  dreiviertel: 45,
   halb: 30,
 };
 
 const timePrepositions = ["vor", "nach"];
 
-function germanTimeToHuman(timeString: String): String {
-  let hour: Number | null = null;
-  let minutes: Number | null = null;
+function germanTimeToHuman(timeString: string): string {
+  let hour: number = 0;
+  let minutes: number | null = null;
+  let hourFraction: "halb" | "viertel" | "dreiviertel" | null = null;
+  let timePreposition: "nach" | "vor" | null = null;
+
   const tokens = timeString.toLowerCase().split(" ");
+
+  for (const token of tokens) {
+    if (["halb", "viertel", "dreiviertel"].includes(token)) {
+      hourFraction = token as "halb" | "viertel" | "dreiviertel";
+    } else if (["vor", "nach"].includes(token)) {
+      timePreposition = token as "vor" | "nach";
+    } else if (token === "uhr") {
+    } else {
+      console.log(token);
+      hour = hoursMap[token] + (12 % 24);
+    }
+  }
+
+  if (hourFraction) {
+    minutes = hourFractions[hourFraction];
+  }
+
+  if (timePreposition) {
+    if (timePreposition === "vor") {
+      hour -= 1;
+      minutes = 60 - hourFractions[hourFraction];
+    }
+  }
+
+  console.log({ timeString });
+  console.log({ hour });
+  console.log({ minutes });
+  console.log({ hourFraction });
+  console.log({ timePreposition });
+  return `${hour}:${minutes}`;
 }
+
+germanTimeToHuman("fünf Uhr");
 
 export default germanTimeToHuman;
