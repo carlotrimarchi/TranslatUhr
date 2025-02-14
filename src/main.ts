@@ -1,35 +1,41 @@
-const hoursMap = {
-  ein: 1,
-  zwei: 2,
-  drei: 3,
-  vier: 4,
-  fünf: 5,
-  sechs: 6,
-  sieben: 7,
-  acht: 8,
-  neun: 9,
-  zehn: 10,
-  elf: 11,
-  zwölf: 12,
-  dreizehn: 13,
-  vierzehn: 14,
-  fünfzehn: 15,
-  sechzehn: 16,
-  siebzehn: 17,
-  achtzehn: 18,
-  neunzehn: 19,
-  zwanzig: 20,
-};
-
-const hourFractions = {
-  viertel: 15,
-  dreiviertel: 45,
-  halb: 30,
-};
-
-const timePrepositions = ["vor", "nach"];
+const isValidHour = (token: string, hoursMap: Record<string, number>) =>
+  token in hoursMap;
 
 function germanTimeToHuman(timeString: string): string {
+  let currentState: "START" | "HOUR_PARSED" | "UHR_PARSED" | "END" = "START";
+  let lastState: string | null = null;
+
+  type ParsedTokens = {
+    hour: string | null;
+    minutes: number | null;
+  };
+
+  const parsedTokens: ParsedTokens = {
+    hour: null,
+    minutes: null,
+  };
+  const hoursMap: Record<string, number> = {
+    ein: 1,
+    zwei: 2,
+    drei: 3,
+    vier: 4,
+    fünf: 5,
+    sechs: 6,
+    sieben: 7,
+    acht: 8,
+    neun: 9,
+    zehn: 10,
+    elf: 11,
+    zwölf: 12,
+    dreizehn: 13,
+    vierzehn: 14,
+    fünfzehn: 15,
+    sechzehn: 16,
+    siebzehn: 17,
+    achtzehn: 18,
+    neunzehn: 19,
+    zwanzig: 20,
+  };
   let hour: number = 0;
   let minutes: number | null = null;
   let hourFraction: "halb" | "viertel" | "dreiviertel" | null = null;
@@ -38,26 +44,29 @@ function germanTimeToHuman(timeString: string): string {
   const tokens = timeString.toLowerCase().split(" ");
 
   for (const token of tokens) {
-    if (["halb", "viertel", "dreiviertel"].includes(token)) {
-      hourFraction = token as "halb" | "viertel" | "dreiviertel";
-    } else if (["vor", "nach"].includes(token)) {
-      timePreposition = token as "vor" | "nach";
-    } else if (token === "uhr") {
-    } else {
-      console.log(token);
-      hour = hoursMap[token] + (12 % 24);
+    switch (currentState) {
+      case "START":
+        if (isValidHour(token, hoursMap)) {
+          currentState = "HOUR_PARSED";
+          parsedTokens.hour = token;
+        }
+        break;
+      case "HOUR_PARSED":
+        if (token === "uhr") {
+          lastState = "UHR_PARSED";
+          currentState = "END";
+        }
+        break;
     }
   }
 
-  if (hourFraction) {
-    minutes = hourFractions[hourFraction];
-  }
-
-  if (timePreposition) {
-    if (timePreposition === "vor") {
-      hour -= 1;
-      minutes = 60 - hourFractions[hourFraction];
-    }
+  if (
+    currentState === "END" &&
+    lastState === "UHR_PARSED" &&
+    parsedTokens.hour
+  ) {
+    currentState = "START";
+    return `${(hoursMap[parsedTokens.hour] + 12) % 24}:00`;
   }
 
   console.log({ timeString });
@@ -67,7 +76,5 @@ function germanTimeToHuman(timeString: string): string {
   console.log({ timePreposition });
   return `${hour}:${minutes}`;
 }
-
-germanTimeToHuman("fünf Uhr");
 
 export default germanTimeToHuman;
