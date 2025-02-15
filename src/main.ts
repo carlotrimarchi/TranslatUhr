@@ -1,9 +1,16 @@
 import { NumberWordsMap } from "./constants.ts";
 
-type ParsingState = "START" | "HOUR_PARSED" | "UHR_PARSED" | "END";
+type ParsingState =
+  | "START"
+  | "HOUR_PARSED"
+  | "HALB_PARSED"
+  | "HOUR_AFTER_HALB_PARSED"
+  | "UHR_PARSED"
+  | "END";
 type ParsedTokens = {
   hour: string | null;
   minutes: string | null;
+  isHalb: boolean;
 };
 
 const isValidHour = (token: string, numbersMap: NumberWordsMap) =>
@@ -20,6 +27,7 @@ function germanTimeToHuman(
   const parsedTokens: ParsedTokens = {
     hour: null,
     minutes: null,
+    isHalb: false,
   };
   // let hourFraction: "halb" | "viertel" | "dreiviertel" | null = null;
   // let timePreposition: "nach" | "vor" | null = null;
@@ -34,6 +42,7 @@ function germanTimeToHuman(
           parsedTokens.hour = token;
         } else if (token === "halb") {
           currentState = "HALB_PARSED";
+          parsedTokens.isHalb = true;
         }
         break;
       case "HOUR_PARSED":
@@ -42,6 +51,10 @@ function germanTimeToHuman(
         }
         break;
       case "HALB_PARSED":
+        if (isValidHour(token, numbersMap)) {
+          parsedTokens.hour = token;
+          currentState = "END";
+        }
         break;
       case "UHR_PARSED":
         if (isValidMinute(token, numbersMap)) {
@@ -53,11 +66,15 @@ function germanTimeToHuman(
   }
 
   currentState = "START";
+  let hour = parsedTokens.hour ? (numbersMap[parsedTokens.hour] + 12) % 24 : 0;
+  let minutes = parsedTokens.minutes ? numbersMap[parsedTokens.minutes] : 0;
 
-  const hour = parsedTokens.hour
-    ? (numbersMap[parsedTokens.hour] + 12) % 24
-    : 0;
-  const minutes = parsedTokens.minutes ? numbersMap[parsedTokens.minutes] : 0;
+  if (parsedTokens.isHalb) {
+    minutes = 30;
+    hour = hour - 1;
+  }
+
+  console.log(hour, minutes);
 
   console.log({ timeString });
   console.log({ hour });
