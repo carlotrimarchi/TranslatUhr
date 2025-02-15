@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import germanTimeToHuman from "../main.ts";
+import { numbersMap } from "../constants.ts";
 
 const cases = [
   ["drei uhr", "15:00"],
@@ -15,5 +16,5 @@ const cases = [
 ];
 
 test.each(cases)("should translate '%s' correctly:", (input, expected) => {
-  expect(germanTimeToHuman(input)).toBe(expected);
+  expect(germanTimeToHuman(input, numbersMap)).toBe(expected);
 });
