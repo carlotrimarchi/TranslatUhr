@@ -1,4 +1,6 @@
-export const numbersMap: Record<string, number> = {
+export type NumberWordsMap = Record<string, number>;
+
+export const numbersMap: NumberWordsMap = {
   ein: 1,
   zwei: 2,
   drei: 3,
