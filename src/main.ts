@@ -1,3 +1,9 @@
+type ParsingState = "START" | "HOUR_PARSED" | "UHR_PARSED" | "END";
+type ParsedTokens = {
+  hour: string | null;
+  minutes: string | null;
+};
+
 const isValidHour = (token: string, numbersMap: Record<string, number>) =>
   token in numbersMap;
 const isValidMinute = (token: string, numbersMap: Record<string, number>) =>
@@ -7,13 +13,7 @@ function germanTimeToHuman(
   timeString: string,
   numbersMap: Record<string, number>,
 ): string {
-  let currentState: "START" | "HOUR_PARSED" | "UHR_PARSED" | "END" = "START";
-  let lastState: string | null = null;
-
-  type ParsedTokens = {
-    hour: string | null;
-    minutes: string | null;
-  };
+  let currentState: ParsingState = "START";
 
   const parsedTokens: ParsedTokens = {
     hour: null,
@@ -39,7 +39,6 @@ function germanTimeToHuman(
         break;
       case "UHR_PARSED":
         if (isValidMinute(token, numbersMap)) {
-          lastState = currentState;
           parsedTokens.minutes = token;
           currentState = "END";
         }
