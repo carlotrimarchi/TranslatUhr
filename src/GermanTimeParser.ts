@@ -1,13 +1,5 @@
 import { NumberWordsMap } from "./constants.ts";
 
-type ParsingState =
-  | "START"
-  | "HOUR_PARSED"
-  | "HALB_PARSED"
-  | "HOUR_AFTER_HALB_PARSED"
-  | "UHR_PARSED"
-  | "END";
-
 type ParsedTokens = {
   hour: string | null;
   minutes: string | null;
@@ -16,52 +8,33 @@ type ParsedTokens = {
 
 export default class GermanTimeParser {
   tokens: string[];
-  state: ParsingState = "START";
+  state: State;
+  protected _numbersMap: NumberWordsMap;
 
   parsedTokens: ParsedTokens = {
     hour: null,
     minutes: null,
     isHalb: false,
   };
-  constructor(
-    timeString: string,
-    private numbersMap: NumberWordsMap,
-  ) {
+  constructor(timeString: string, numbersMap: NumberWordsMap) {
     this.tokens = timeString.toLowerCase().split(" ");
+    this._numbersMap = numbersMap;
+    this.state = new StartState(this);
+  }
+
+  get numbersMap(): NumberWordsMap {
+    return this._numbersMap;
   }
 
   parse() {
     for (const token of this.tokens) {
-      switch (this.state) {
-        case "START":
-          if (this.#isValidHour(token, this.numbersMap)) {
-            this.state = "HOUR_PARSED";
-            this.parsedTokens.hour = token;
-          } else if (token === "halb") {
-            this.state = "HALB_PARSED";
-            this.parsedTokens.isHalb = true;
-          }
-          break;
-        case "HOUR_PARSED":
-          if (token === "uhr") {
-            this.state = "UHR_PARSED";
-          }
-          break;
-        case "HALB_PARSED":
-          if (this.#isValidHour(token, this.numbersMap)) {
-            this.parsedTokens.hour = token;
-            this.state = "END";
-          }
-          break;
-        case "UHR_PARSED":
-          if (this.#isValidMinute(token, this.numbersMap)) {
-            this.parsedTokens.minutes = token;
-            this.state = "END";
-          }
-          break;
-      }
+      this.state.processToken(token);
     }
 
+    return this.formatTime();
+  }
+
+  private formatTime() {
     let hour = this.parsedTokens.hour
       ? (this.numbersMap[this.parsedTokens.hour] + 12) % 24
       : 0;
@@ -76,11 +49,55 @@ export default class GermanTimeParser {
 
     return `${hour}:${minutes.toString().padStart(2, "0")}`;
   }
-  #isValidHour(token: string, numbersMap: NumberWordsMap) {
-    return token in numbersMap;
-  }
+}
 
-  #isValidMinute(token: string, numbersMap: NumberWordsMap) {
-    return token in numbersMap;
+interface State {
+  processToken(token: string): void;
+}
+
+class StartState implements State {
+  constructor(private parser: GermanTimeParser) {}
+  processToken(token: string) {
+    if (token in this.parser.numbersMap) {
+      this.parser.parsedTokens.hour = token;
+      this.parser.state = new HourParsedState(this.parser);
+    } else if (token === "halb") {
+      this.parser.parsedTokens.isHalb = true;
+      this.parser.state = new HalbParsedState(this.parser);
+    }
   }
+}
+
+class HourParsedState implements State {
+  constructor(private parser: GermanTimeParser) {}
+  processToken(token: string) {
+    if (token === "uhr") {
+      this.parser.state = new UhrParsedState(this.parser);
+    }
+  }
+}
+
+class HalbParsedState implements State {
+  constructor(private parser: GermanTimeParser) {}
+  processToken(token: string) {
+    if (token in this.parser.numbersMap) {
+      this.parser.parsedTokens.hour = token;
+      this.parser.state = new EndState(this.parser);
+    }
+  }
+}
+
+class UhrParsedState implements State {
+  constructor(private parser: GermanTimeParser) {}
+  processToken(token: string) {
+    if (token in this.parser.numbersMap) {
+      this.parser.parsedTokens.minutes = token;
+      this.parser.state = new EndState(this.parser);
+    }
+  }
+}
+
+class EndState implements State {
+  constructor(private parser: GermanTimeParser) {}
+  processToken(token: string) {}
 }
