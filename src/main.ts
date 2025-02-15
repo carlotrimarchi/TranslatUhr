@@ -32,12 +32,16 @@ function germanTimeToHuman(
         if (isValidHour(token, numbersMap)) {
           currentState = "HOUR_PARSED";
           parsedTokens.hour = token;
+        } else if (token === "halb") {
+          currentState = "HALB_PARSED";
         }
         break;
       case "HOUR_PARSED":
         if (token === "uhr") {
           currentState = "UHR_PARSED";
         }
+        break;
+      case "HALB_PARSED":
         break;
       case "UHR_PARSED":
         if (isValidMinute(token, numbersMap)) {
