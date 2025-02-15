@@ -1,17 +1,19 @@
+import { NumberWordsMap } from "./constants.ts";
+
 type ParsingState = "START" | "HOUR_PARSED" | "UHR_PARSED" | "END";
 type ParsedTokens = {
   hour: string | null;
   minutes: string | null;
 };
 
-const isValidHour = (token: string, numbersMap: Record<string, number>) =>
+const isValidHour = (token: string, numbersMap: NumberWordsMap) =>
   token in numbersMap;
-const isValidMinute = (token: string, numbersMap: Record<string, number>) =>
+const isValidMinute = (token: string, numbersMap: NumberWordsMap) =>
   token in numbersMap;
 
 function germanTimeToHuman(
   timeString: string,
-  numbersMap: Record<string, number>,
+  numbersMap: NumberWordsMap,
 ): string {
   let currentState: ParsingState = "START";
 
