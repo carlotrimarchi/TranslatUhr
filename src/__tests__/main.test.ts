@@ -16,7 +16,7 @@ const cases = [
   ["viertel nach sechs", "18:15"],
   ["zwanzig nach vier", "16:20"],
   ["zwanzig vor vier", "15:40"],
-  // ["viertel vor sechs", "17:45"],
+  ["viertel vor sechs", "17:45"],
   // ["dreiviertel sieben", "18:45"],
   // ["dreiviertel nach sieben", "19:45"],
 ];
