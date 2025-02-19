@@ -1,4 +1,6 @@
 import { NumberWordsMap, fractions } from "./constants.ts";
+import State from "./states/State.ts";
+import StartState from "./states/StartState.ts";
 
 type ParsedTokens = {
   number: string | null;
@@ -72,102 +74,4 @@ export default class GermanTimeParser {
 
     return `${hour}:${minutes.toString().padStart(2, "0")}`;
   }
-}
-
-interface State {
-  processToken(token: string): void;
-}
-
-class StartState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (token === "halb") {
-      this.parser.parsedTokens.isHalb = true;
-      this.parser.state = new HalbParsedState(this.parser);
-    } else if (["viertel", "dreiviertel"].includes(token)) {
-      this.parser.parsedTokens.isFraction = true;
-      this.parser.parsedTokens.fraction = token;
-      this.parser.state = new FractionParsedState(this.parser);
-    } else if (token in this.parser.numbersMap) {
-      this.parser.parsedTokens.number = token;
-      console.log({ token });
-      this.parser.state = new NumberParsedState(this.parser);
-    }
-  }
-}
-
-class FractionParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (["nach", "vor"].includes(token)) {
-      this.parser.parsedTokens.preposition = token;
-      this.parser.state = new PrepositionParsedState(this.parser);
-    }
-  }
-}
-
-class PrepositionParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (token in this.parser.numbersMap) {
-      this.parser.parsedTokens.hour = token;
-      this.parser.state = new EndState(this.parser);
-    }
-  }
-}
-
-class NumberParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (token === "uhr") {
-      console.log("found uhr");
-      this.parser.parsedTokens.hour = this.parser.parsedTokens.number;
-
-      if (this.parser.tokens.indexOf(token) === this.parser.tokens.length - 1) {
-        this.parser.state = new EndState(this.parser);
-      } else {
-        this.parser.state = new UhrParsedState(this.parser);
-      }
-    } else if (["nach", "vor"].includes(token)) {
-      this.parser.parsedTokens.minutes = this.parser.parsedTokens.number;
-      this.parser.parsedTokens.preposition = token;
-      this.parser.state = new PrepositionParsedState(this.parser);
-    }
-  }
-}
-
-class HourParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (token === "uhr") {
-      this.parser.state = new UhrParsedState(this.parser);
-    }
-  }
-}
-
-class HalbParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    if (token in this.parser.numbersMap) {
-      this.parser.parsedTokens.hour = token;
-      this.parser.state = new EndState(this.parser);
-    }
-  }
-}
-
-class UhrParsedState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {
-    this.parser.parsedTokens.hour = this.parser.parsedTokens.number;
-    console.log("uhrparsed", this.parser.parsedTokens);
-    if (token in this.parser.numbersMap) {
-      this.parser.parsedTokens.minutes = token;
-      this.parser.state = new EndState(this.parser);
-    }
-  }
-}
-
-class EndState implements State {
-  constructor(private parser: GermanTimeParser) {}
-  processToken(token: string) {}
 }
