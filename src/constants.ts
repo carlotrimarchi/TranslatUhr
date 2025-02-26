@@ -9,6 +9,7 @@ export const fractions: Record<string, number> = {
 
 export const hoursMap: NumberWordsMap = {
   ein: 1,
+  eins: 1,
   zwei: 2,
   drei: 3,
   vier: 4,
