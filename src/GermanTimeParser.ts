@@ -35,7 +35,6 @@ export default class GermanTimeParser {
     this.tokens = timeString.toLowerCase().split(" ");
     this._numbersMap = numbersMap;
     this.state = new StartState(this);
-    console.log(this.numbersMap);
   }
 
   get numbersMap(): NumberWordsMap {
@@ -62,13 +61,14 @@ export default class GermanTimeParser {
 
     if (this.parsedTokens.preposition) {
       if (this.parsedTokens.preposition === "vor") {
-        hour -= 1;
+        hour = (hour - 1 + 12) % 12 || 12;
         minutes = 60 - minutes;
       } else {
       }
     }
+
     if (this.parsedTokens.isHalb) {
-      hour = hour - 1;
+      hour = (hour - 1 + 12) % 12 || 12;
       minutes = 30;
     }
 
@@ -77,23 +77,10 @@ export default class GermanTimeParser {
 
   private formatTime() {
     console.log("formattime", this.parsedTokens);
-
     console.log(hour, minutes);
 
     if (this.parsedTokens.isFraction && this.parsedTokens.fraction) {
       minutes = fractions[this.parsedTokens.fraction];
-    }
-
-    if (this.parsedTokens.preposition) {
-      if (this.parsedTokens.preposition === "vor") {
-        hour -= 1;
-        minutes = 60 - minutes;
-      } else {
-      }
-    }
-    if (this.parsedTokens.isHalb) {
-      minutes = 30;
-      hour = hour - 1;
     }
 
     return `${hour}:${minutes.toString().padStart(2, "0")}`;
